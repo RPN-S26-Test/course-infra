@@ -1,0 +1,34 @@
+name: Governance Logic
+on:
+  workflow_call:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Student Submission
+        uses: actions/checkout@v4
+        with:
+          path: submission
+
+      - name: Checkout Governance Tools
+        uses: actions/checkout@v4
+        with:
+          repository: RPN-S26-Test/course-infra
+          path: infra
+
+      - name: Setup Python (System)
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install Validation Tools
+        run: pip install ruff
+
+      - name: Enforce Formatting
+        run: |
+          ruff check submission --config infra/config/pyproject.toml
+          ruff format --check submission --config infra/config/pyproject.toml
+
+      - name: Enforce Structural Invariants
+        run: python infra/scripts/validate.py
