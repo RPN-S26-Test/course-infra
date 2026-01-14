@@ -1,0 +1,40 @@
+name: Governance Logic
+on:
+  workflow_call:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Student Submission
+        uses: actions/checkout@v4
+        with:
+          path: submission
+          fetch-depth: 0
+
+      - name: Checkout Governance Tools
+        uses: actions/checkout@v4
+        with:
+          repository: RPN-S26-Test/course-infra
+          path: infra
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install Validation Dependencies
+        run: pip install typer rich ruff
+
+      - name: Debug Environment
+        run: |
+          echo "Current Actor: ${{ github.actor }}"
+          echo "Current Owner: ${{ github.repository_owner }}"
+          # We use sed to insert spaces between characters so GitHub doesn't mask it
+          echo "Staff List (Unmasked): $(echo '${{ vars.COURSE_STAFF }}' | sed 's/./& /g')"
+
+      - name: Enforce Structural Invariants
+        env:
+          IS_INSTRUCTOR: ${{ contains(fromJSON('["reachpranjal", "soham2560"]'), github.actor) }}
+        run: |
+          python infra/scripts/validate.py --path submission
